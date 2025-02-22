@@ -1,7 +1,9 @@
-import React, { useRef, useState } from "react";
+import React, { use, useRef, useState } from "react";
 
 import Header from "./Header";
-import { checkValidData } from "../utils/validate";
+import { checkValidData, checkValidDataSignup } from "../utils/validate";
+import {createUserWithEmailAndPassword, signInWithEmailAndPassword } from "firebase/auth";
+import { auth } from "../utils/firebase";
 
 
 
@@ -12,16 +14,60 @@ const Login = () => {
     const [errorMessage,setErrorMessage]=useState(null)
     const email=useRef(null);
     const password=useRef(null ); 
+    const repeatedPassword=useRef(null);
     const toggleSignInForm=()=>{
         setIsSigninForm(!isSigninForm);
+        setErrorMessage(null);
    
     }
-    const handelButtonClick=()=>{
+    const handelButtonClickSignIn=()=>{
        // validate the form data
        const message= checkValidData(email?.current?.value,password?.current?.value) 
 
        setErrorMessage(message);
+
+      if(message==null){
+        signInWithEmailAndPassword(auth,email?.current?.value, password?.current?.value)
+        .then((UserCredential)=>{
+          const user=UserCredential.user;
+          console.log(user);
+        })
+        .catch((error)=>{
+          const errorCode = error.code;
+          setErrorMessage(errorCode);
+        })
+      }
+       
+      
+      
+      
+       
     }
+
+    const handelButtonClickSignup=(e)=>{
+      e.preventDefault();
+      const message= checkValidDataSignup(email?.current?.value,password?.current?.value,repeatedPassword?.current?.value);
+      setErrorMessage(message)
+
+      console.log(message)
+      console.log(email?.current?.value)
+      console.log(password?.current?.value)
+      if(message==null){
+        //Signup Logic
+       createUserWithEmailAndPassword(auth, email?.current?.value, password?.current?.value)
+        .then((UserCredential)=>{
+          const user=UserCredential.user;
+          console.log(user);
+        })
+        .catch((error)=>{
+          const errorCode = error.code;
+          setErrorMessage(errorCode);
+        });
+      }
+
+    }
+
+   
 
 
 
@@ -69,13 +115,14 @@ const Login = () => {
 
               {!isSigninForm && (
                 <input
+                ref={repeatedPassword}
                 type="password"
                 placeholder="Confirm Password"
                 className="block mb-4 p-2 w-full ring ring-offset-0 ring-gray-300 bg-gray-600/20 opacity-55 backdrop-blur-md rounded-[2px] h-[52px]"
               />
               )}
               <p className="text-red-500 p-1.5 font-bold text-lg">{errorMessage}</p>
-              <div className=" text-center bg-red-600 h-10 flex justify-center font-bold rounded-sm" onClick={handelButtonClick}>
+              <div className=" text-center bg-red-600 h-10 flex justify-center font-bold rounded-sm" onClick={isSigninForm? handelButtonClickSignIn:handelButtonClickSignup} >
               <button>{isSigninForm? "Sign In": "Sign Up"}</button>
               </div>
               <div>
