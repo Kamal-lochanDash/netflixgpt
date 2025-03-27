@@ -2,16 +2,23 @@ import React, { use, useRef, useState } from "react";
 
 import Header from "./Header";
 import { checkValidData, checkValidDataSignup } from "../utils/validate";
-import {createUserWithEmailAndPassword, signInWithEmailAndPassword } from "firebase/auth";
+import {createUserWithEmailAndPassword, signInWithEmailAndPassword, updateProfile } from "firebase/auth";
 import { auth } from "../utils/firebase";
+import { useNavigate } from "react-router-dom";
+import { useDispatch } from "react-redux";
+import { addUser } from "../utils/userSlice";
 
 
 
 const Login = () => {
 
 
+
+const navigate=useNavigate();
+const dispatch=useDispatch();
     const [isSigninForm,setIsSigninForm]=useState(true );
     const [errorMessage,setErrorMessage]=useState(null)
+    const name=useRef(null);
     const email=useRef(null);
     const password=useRef(null ); 
     const repeatedPassword=useRef(null);
@@ -31,6 +38,7 @@ const Login = () => {
         .then((UserCredential)=>{
           const user=UserCredential.user;
           console.log(user);
+          navigate("/browse");
         })
         .catch((error)=>{
           const errorCode = error.code;
@@ -58,6 +66,15 @@ const Login = () => {
         .then((UserCredential)=>{
           const user=UserCredential.user;
           console.log(user);
+
+          updateProfile(auth.currentUser,{displayName:name?.current?.value}).then(()=>{
+            navigate("/browse")
+            const {uid,email,displayName}=auth.currentUser;
+            dispatch(addUser({uid:uid,email:email,displayName:displayName}));
+          }).catch((error)=>{
+            setErrorMessage(error.message)
+          })
+        
         })
         .catch((error)=>{
           const errorCode = error.code;
@@ -94,6 +111,7 @@ const Login = () => {
 
             {!isSigninForm && (
                 <input
+                ref={name}
                 type="text"
                 placeholder="Full Name"
                 className="block mb-4 p-2 w-full ring ring-offset-0 ring-gray-300 bg-gray-600/20 opacity-55 backdrop-blur-md rounded-[2px] h-[52px]"

@@ -1,9 +1,11 @@
 import React from 'react'
+import BrowserHead from './BrowserHead'
+
 
 const Browse = () => {
   return (
     <div>
-      Browser
+     <BrowserHead/>
     </div>
   )
 }
